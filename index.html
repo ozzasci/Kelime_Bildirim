@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelime Bildirim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="https://via.placeholder.com/32" type="image/png">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --background-color: #f4f7fa;
+            --card-background: #ffffff;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+            --error-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --secondary-color: #6c757d;
+        }
+        .dark-mode {
+            --primary-color: #1e90ff;
+            --primary-hover: #1c86ee;
+            --background-color: #1a1d2d;
+            --card-background: #2c2f3f;
+            --text-color: #e0e0e0;
+            --border-color: #44475a;
+            --error-color: #ff5555;
+            --success-color: #55ff55;
+            --warning-color: #ffaa00;
+            --secondary-color: #aaaaaa;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            flex-grow: 1;
+        }
+        .card {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--text-color);
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="number"], input[type="file"], select {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--card-background);
+            color: var(--text-color);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+        button {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.1s;
+            touch-action: manipulation;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .delete-btn, .edit-btn {
+            background-color: var(--error-color);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            margin-left: 8px;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .edit-btn {
+            background-color: var(--warning-color);
+        }
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        .save-btn {
+            background-color: var(--success-color);
+        }
+        .save-btn:hover {
+            background-color: #218838;
+        }
+        .cancel-btn {
+            background-color: var(--secondary-color);
+        }
+        .cancel-btn:hover {
+            background-color: #5a6268;
+        }
+        .clear-all-btn {
+            background-color: var(--secondary-color);
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .clear-all-btn:hover {
+            background-color: #5a6268;
+        }
+        #wordList {
+            list-style: none;
+            margin-top: 20px;
+        }
+        #wordList li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        #wordList li:last-child {
+            border-bottom: none;
+        }
+        #wordList li:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+        .error {
+            color: var(--error-color);
+            font-size: 0.9rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .notification-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        /* Menü Stilleri */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--card-background);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        .hamburger {
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: var(--card-background);
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            transition: left 0.3s ease;
+            z-index: 999;
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar ul {
+            list-style: none;
+            margin-top: 60px;
+        }
+        .sidebar li {
+            margin-bottom: 20px;
+        }
+        .sidebar a, .sidebar button {
+            display: block;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 10px;
+            border-radius: 8px;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .sidebar a:hover, .sidebar button:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+        /* Mobil Uyumluluk */
+        @media (max-width: 600px) {
+            .container {
+                margin: 80px 10px 20px;
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .input-group {
+                gap: 10px;
+            }
+            input, select, button {
+                font-size: 0.9rem;
+                padding: 10px;
+            }
+            #wordList li {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .notification-group {
+                flex-direction: column;
+            }
+        }
+        @media (max-width: 400px) {
+            .card {
+                padding: 15px;
+            }
+            button {
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="hamburger" onclick="toggleMenu()">&#9776;</div>
+        <h1>Kelime Bildirim</h1>
+        <div></div>
+    </nav>
+    <div class="sidebar" id="sidebar">
+        <ul>
+            <li><a href="#add-word" onclick="showSection('add-word'); toggleMenu()">Kelime Ekle</a></li>
+            <li><a href="#upload-file" onclick="showSection('upload-file'); toggleMenu()">Dosya Yükle</a></li>
+            <li><a href="#notification-settings" onclick="showSection('notification-settings'); toggleMenu()">Bildirim Ayarları</a></li>
+            <li><button onclick="clearAllWords(); toggleMenu()">Tümünü Sil</button></li>
+            <li><button onclick="toggleDarkMode(); toggleMenu()">Karanlık/Açık Mod</button></li>
+        </ul>
+    </div>
+    <div class="container">
+        <div class="card" id="add-word">
+            <h2>Kelime Ekle</h2>
+            <div class="input-group">
+                <input type="text" id="wordInput" placeholder="Bir kelime girin">
+                <input type="number" id="intervalInput" placeholder="Bildirim sıklığı (saniye)" min="5">
+                <button onclick="addWord()">Ekle</button>
+            </div>
+        </div>
+        <div class="card" id="upload-file" style="display: none;">
+            <h2>Dosya Yükle</h2>
+            <div class="input-group">
+                <input type="file" id="fileInput" accept=".txt,.xlsx,.xls,.pdf,.json">
+                <input type="number" id="wordCountInput" placeholder="Kaç kelime yüklensin? (Boş = tümü)" min="1">
+                <select id="selectionMethod">
+                    <option value="random">Rastgele</option>
+                    <option value="first">İlk N Kelime</option>
+                    <option value="last">Son N Kelime</option>
+                </select>
+                <select id="categoryFilter">
+                    <option value="">Tümü</option>
+                </select>
+                <button onclick="uploadFile()">Dosya Yükle</button>
+            </div>
+        </div>
+        <div class="card" id="notification-settings" style="display: none;">
+            <h2>Bildirim Ayarları</h2>
+            <div class="notification-group">
+                <input type="number" id="notificationWordCount" placeholder="Bildirim yapılacak kelime sayısı (Boş = tümü)" min="1">
+                <button onclick="updateNotifications()">Uygula</button>
+            </div>
+        </div>
+        <div id="error" class="error"></div>
+        <div class="card">
+            <h2>Kelime Listesi</h2>
+            <button class="clear-all-btn" onclick="clearAllWords()">Tümünü Sil</button>
+            <ul id="wordList"></ul>
+        </div>
+    </div>
+
+    <script>
+        let words = JSON.parse(localStorage.getItem('words')) || [];
+        let notificationIntervals = new Map();
+        let editingIndex = null;
+        let notificationWordCount = parseInt(localStorage.getItem('notificationWordCount')) || 0;
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('notificationWordCount').value = notificationWordCount || '';
+            updateWordList();
+            updateNotifications();
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            // PWA servis çalışanı kaydı
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js').catch(err => console.error('Service Worker kaydı başarısız:', err));
+            }
+        });
+
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.card').forEach(card => {
+                card.style.display = card.id === sectionId ? 'block' : 'none';
+            });
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        function isWordExists(word) {
+            return words.some(w => w.word.toLowerCase() === word.toLowerCase());
+        }
+
+        function getSelectedItems(array, count, method) {
+            if (!count || count >= array.length) return array;
+            if (method === 'first') {
+                return array.slice(0, count);
+            } else if (method === 'last') {
+                return array.slice(-count);
+            } else {
+                const shuffled = array.slice().sort(() => Math.random() - 0.5);
+                return shuffled.slice(0, count);
+            }
+        }
+
+        function stopAllNotifications() {
+            notificationIntervals.forEach((intervalId) => clearInterval(intervalId));
+            notificationIntervals.clear();
+        }
+
+        function startNotifications(wordList) {
+            stopAllNotifications();
+            wordList.forEach(wordObj => {
+                if (Notification.permission !== 'granted') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            const intervalId = showNotification(wordObj.word, wordObj.interval);
+                            notificationIntervals.set(wordObj.word, intervalId);
+                        } else {
+                            alert('Bildirim izni verilmedi, alert kullanılacak.');
+                            const intervalId = setInterval(() => alert(`Hatırlatma: ${wordObj.word}`), wordObj.interval);
+                            notificationIntervals.set(wordObj.word, intervalId);
+                        }
+                    });
+                } else {
+                    const intervalId = showNotification(wordObj.word, wordObj.interval);
+                    notificationIntervals.set(wordObj.word, intervalId);
+                }
+            });
+        }
+
+        function showNotification(word, interval) {
+            return setInterval(() => {
+                new Notification('Kelime Hatırlatıcı', {
+                    body: `Hatırlatma: ${word}`,
+                    icon: 'https://via.placeholder.com/32'
+                });
+            }, interval);
+        }
+
+        function updateNotifications() {
+            const notificationWordCountInput = document.getElementById('notificationWordCount');
+            const errorDiv = document.getElementById('error');
+            const newCount = parseInt(notificationWordCountInput.value) || 0;
+
+            if (notificationWordCountInput.value && (isNaN(newCount) || newCount < 1)) {
+                errorDiv.textContent = 'Lütfen geçerli bir bildirim kelime sayısı girin!';
+                return;
+            }
+
+            if (words.length === 0) {
+                errorDiv.textContent = 'Önce kelime yükleyin!';
+                return;
+            }
+
+            notificationWordCount = newCount;
+            localStorage.setItem('notificationWordCount', notificationWordCount);
+            errorDiv.textContent = '';
+
+            const selectedWords = getSelectedItems(words, notificationWordCount, 'random');
+            startNotifications(selectedWords);
+        }
+
+        function addWord() {
+            const wordInput = document.getElementById('wordInput');
+            const intervalInput = document.getElementById('intervalInput');
+            const errorDiv = document.getElementById('error');
+            const word = wordInput.value.trim();
+            const interval = parseInt(intervalInput.value) * 1000;
+
+            if (!word || !interval || interval < 5000) {
+                errorDiv.textContent = 'Lütfen bir kelime ve en az 5 saniyelik bir süre girin!';
+                return;
+            }
+
+            if (isWordExists(word)) {
+                errorDiv.textContent = 'Bu kelime zaten listede!';
+                return;
+            }
+
+            errorDiv.textContent = '';
+            const wordObj = { word, interval };
+            words.push(wordObj);
+            localStorage.setItem('words', JSON.stringify(words));
+            updateWordList();
+            updateNotifications();
+            wordInput.value = '';
+            intervalInput.value = '';
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const wordCountInput = document.getElementById('wordCountInput');
+            const selectionMethod = document.getElementById('selectionMethod').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const errorDiv = document.getElementById('error');
+            const file = fileInput.files[0];
+            const wordCount = parseInt(wordCountInput.value);
+
+            if (!file) {
+                errorDiv.textContent = 'Lütfen bir dosya seçin!';
+                return;
+            }
+
+            if (wordCountInput.value && (isNaN(wordCount) || wordCount < 1)) {
+                errorDiv.textContent = 'Lütfen geçerli bir kelime sayısı girin (en az 1)!';
+                return;
+            }
+
+            const fileName = file.name.toLowerCase();
+            const defaultInterval = 10000;
+
+            if (fileName.endsWith('.txt')) {
+                handleTextFile(file, defaultInterval, wordCount, selectionMethod, categoryFilter);
+            } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                handleExcelFile(file, defaultInterval, wordCount, selectionMethod, categoryFilter);
+            } else if (fileName.endsWith('.pdf')) {
+                handlePDFFile(file, defaultInterval, wordCount, selectionMethod, categoryFilter);
+            } else if (fileName.endsWith('.json')) {
+                handleJSONFile(file, defaultInterval, wordCount, selectionMethod, categoryFilter);
+            } else {
+                errorDiv.textContent = 'Desteklenen dosya türleri: .txt, .xlsx, .xls, .pdf, .json';
+                return;
+            }
+
+            fileInput.value = '';
+            wordCountInput.value = '';
+        }
+
+        function handleTextFile(file, defaultInterval, wordCount, selectionMethod, categoryFilter) {
+            const reader = new FileReader();
+            const errorDiv = document.getElementById('error');
+            reader.onload = function(e) {
+                const content = e.target.result;
+                let lines = content.split('\n').map(line => line.trim()).filter(line => line);
+                
+                if (lines.length === 0) {
+                    errorDiv.textContent = 'Dosya boş veya geçerli kelime içermiyor!';
+                    return;
+                }
+
+                lines = getSelectedItems(lines, wordCount, selectionMethod);
+                const newWords = lines.filter(word => !isWordExists(word));
+                if (newWords.length === 0) {
+                    errorDiv.textContent = 'Dosyadaki tüm kelimeler zaten listede!';
+                    return;
+                }
+
+                errorDiv.textContent = '';
+                newWords.forEach(word => {
+                    const wordObj = { word, interval: defaultInterval };
+                    words.push(wordObj);
+                });
+                localStorage.setItem('words', JSON.stringify(words));
+                updateWordList();
+                updateNotifications();
+            };
+            reader.onerror = function() {
+                errorDiv.textContent = 'Dosya okunurken hata oluştu!';
+            };
+            reader.readAsText(file);
+        }
+
+        function handleExcelFile(file, defaultInterval, wordCount, selectionMethod, categoryFilter) {
+            const reader = new FileReader();
+            const errorDiv = document.getElementById('error');
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    let lines = rows.map(row => {
+                        const firstCol = row[0]?.toString().trim();
+                        const secondCol = row[1]?.toString().trim();
+                        if (firstCol && secondCol) {
+                            return `${firstCol} ${secondCol}`;
+                        } else if (firstCol) {
+                            return firstCol;
+                        }
+                        return null;
+                    }).filter(line => line);
+
+                    if (lines.length === 0) {
+                        errorDiv.textContent = 'Excel dosyası boş veya geçerli kelime içermiyor!';
+                        return;
+                    }
+
+                    lines = getSelectedItems(lines, wordCount, selectionMethod);
+                    const newWords = lines.filter(word => !isWordExists(word));
+                    if (newWords.length === 0) {
+                        errorDiv.textContent = 'Dosyadaki tüm kelimeler zaten listede!';
+                        return;
+                    }
+
+                    errorDiv.textContent = '';
+                    newWords.forEach(word => {
+                        const wordObj = { word, interval: defaultInterval };
+                        words.push(wordObj);
+                    });
+                    localStorage.setItem('words', JSON.stringify(words));
+                    updateWordList();
+                    updateNotifications();
+                } catch (err) {
+                    errorDiv.textContent = 'Excel dosyası okunurken hata oluştu!';
+                }
+            };
+            reader.onerror = function() {
+                errorDiv.textContent = 'Dosya okunurken hata oluştu!';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function handlePDFFile(file, defaultInterval, wordCount, selectionMethod, categoryFilter) {
+            const errorDiv = document.getElementById('error');
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join(' ') + ' ';
+                }
+                let lines = text.split(/\s+/).map(word => word.trim()).filter(word => word);
+
+                if (lines.length === 0) {
+                    errorDiv.textContent = 'PDF dosyası boş veya geçerli kelime içermiyor!';
+                    return;
+                }
+
+                lines = getSelectedItems(lines, wordCount, selectionMethod);
+                const newWords = lines.filter(word => !isWordExists(word));
+                if (newWords.length === 0) {
+                    errorDiv.textContent = 'Dosyadaki tüm kelimeler zaten listede!';
+                    return;
+                }
+
+                errorDiv.textContent = '';
+                newWords.forEach(word => {
+                    const wordObj = { word, interval: defaultInterval };
+                    words.push(wordObj);
+                });
+                localStorage.setItem('words', JSON.stringify(words));
+                updateWordList();
+                updateNotifications();
+            } catch (err) {
+                errorDiv.textContent = 'PDF dosyası okunurken hata oluştu!';
+            }
+        }
+
+        function handleJSONFile(file, defaultInterval, wordCount, selectionMethod, categoryFilter) {
+            const reader = new FileReader();
+            const errorDiv = document.getElementById('error');
+            const categorySelect = document.getElementById('categoryFilter');
+            reader.onload = function(e) {
+                try {
+                    const content = JSON.parse(e.target.result);
+                    let lines = [];
+                    let categories = new Set();
+
+                    if (Array.isArray(content)) {
+                        lines = content.map(item => {
+                            if (!item) return null;
+                            if (typeof item === 'string') {
+                                return { word: item.trim(), category: null };
+                            }
+                            if (typeof item === 'object') {
+                                let word = null;
+                                const itemCategory = item.kategori?.toString().trim();
+                                if (itemCategory) categories.add(itemCategory);
+
+                                const osmanlica = item.osmanlica?.toString().trim();
+                                const turkce = item.turkce?.toString().trim();
+                                if (osmanlica && turkce) {
+                                    word = `${osmanlica} ${turkce}`;
+                                } else if (osmanlica) {
+                                    word = osmanlica;
+                                } else if (turkce) {
+                                    word = turkce;
+                                }
+
+                                if (!word) {
+                                    const kelime = item.kelime?.toString().trim();
+                                    const anlam = item.anlam?.toString().trim();
+                                    if (kelime && anlam) {
+                                        word = `${kelime} ${anlam}`;
+                                    } else if (kelime) {
+                                        word = kelime;
+                                    } else if (anlam) {
+                                        word = anlam;
+                                    }
+                                }
+
+                                if (!word) {
+                                    const cogul = item['çoğul']?.toString().trim();
+                                    const tekil = item.tekil?.toString().trim();
+                                    if (cogul && tekil) {
+                                        word = `${cogul} ${tekil}`;
+                                    } else if (tekil) {
+                                        word = tekil;
+                                    } else if (cogul) {
+                                        word = cogul;
+                                    }
+                                }
+
+                                if (!word) {
+                                    const ismiFail = item['İsm-i Fâil']?.toString().trim();
+                                    const masdar = item.Masdar?.toString().trim();
+                                    if (ismiFail && masdar) {
+                                        word = `${ismiFail} ${masdar}`;
+                                    } else if (ismiFail) {
+                                        word = ismiFail;
+                                    } else if (masdar) {
+                                        word = masdar;
+                                    }
+                                }
+
+                                if (word) {
+                                    return { word, category: itemCategory };
+                                }
+                            }
+                            return null;
+                        }).filter(item => item);
+                    } else if (typeof content === 'object') {
+                        const failItems = content.arapca_ismi_fail || [];
+                        const mefulItems = content.arapca_ismi_meful || [];
+
+                        const failLines = failItems.map(item => {
+                            const isim = item.isim?.toString().trim();
+                            const masdar = item.masdar?.toString().trim();
+                            let word = null;
+                            if (isim && masdar) {
+                                word = `${isim} ${masdar}`;
+                            } else if (isim) {
+                                word = isim;
+                            } else if (masdar) {
+                                word = masdar;
+                            }
+                            if (word) {
+                                return { word, category: 'Arapça İsm-i Fâil' };
+                            }
+                            return null;
+                        }).filter(item => item);
+
+                        const mefulLines = mefulItems.map(item => {
+                            const isim = item.isim?.toString().trim();
+                            const masdar = item.masdar?.toString().trim();
+                            let word = null;
+                            if (isim && masdar) {
+                                word = `${isim} ${masdar}`;
+                            } else if (isim) {
+                                word = isim;
+                            } else if (masdar) {
+                                word = masdar;
+                            }
+                            if (word) {
+                                return { word, category: 'Arapça İsm-i Mef’ûl' };
+                            }
+                            return null;
+                        }).filter(item => item);
+
+                        lines = [...failLines, ...mefulLines];
+                        categories.add('Arapça İsm-i Fâil');
+                        categories.add('Arapça İsm-i Mef’ûl');
+                    } else {
+                        errorDiv.textContent = 'JSON dosyası bir dizi veya obje olmalı!';
+                        return;
+                    }
+
+                    const currentOptions = Array.from(categorySelect.options).map(opt => opt.value);
+                    categories.forEach(cat => {
+                        if (cat && !currentOptions.includes(cat)) {
+                            const option = document.createElement('option');
+                            option.value = cat;
+                            option.textContent = cat;
+                            categorySelect.appendChild(option);
+                        }
+                    });
+
+                    if (lines.length === 0) {
+                        errorDiv.textContent = 'JSON dosyası boş veya geçerli kelime içermiyor!';
+                        return;
+                    }
+
+                    let filteredLines = lines;
+                    if (categoryFilter) {
+                        filteredLines = lines.filter(item => item.category === categoryFilter);
+                        if (filteredLines.length === 0) {
+                            errorDiv.textContent = 'Seçilen kategoride kelime bulunamadı!';
+                            return;
+                        }
+                    }
+
+                    filteredLines = getSelectedItems(filteredLines.map(item => item.word), wordCount, selectionMethod);
+                    const newWords = filteredLines.filter(word => !isWordExists(word));
+                    if (newWords.length === 0) {
+                        errorDiv.textContent = 'Dosyadaki tüm kelimeler zaten listede!';
+                        return;
+                    }
+
+                    errorDiv.textContent = '';
+                    newWords.forEach(word => {
+                        const wordObj = { word, interval: defaultInterval };
+                        words.push(wordObj);
+                    });
+                    localStorage.setItem('words', JSON.stringify(words));
+                    updateWordList();
+                    updateNotifications();
+                } catch (err) {
+                    errorDiv.textContent = 'JSON dosyası okunurken hata oluştu!';
+                }
+            };
+            reader.onerror = function() {
+                errorDiv.textContent = 'Dosya okunurken hata oluştu!';
+            };
+            reader.readAsText(file);
+        }
+
+        function editWord(index) {
+            if (editingIndex !== null) {
+                cancelEdit();
+            }
+            editingIndex = index;
+            const wordObj = words[index];
+            const li = document.getElementById(`word-${index}`);
+            li.innerHTML = `
+                <div class="edit-form">
+                    <input type="text" id="editWordInput-${index}" value="${wordObj.word}">
+                    <input type="number" id="editIntervalInput-${index}" value="${wordObj.interval / 1000}" min="5">
+                    <div>
+                        <button class="save-btn" onclick="saveEdit(${index})">Kaydet</button>
+                        <button class="cancel-btn" onclick="cancelEdit()">İptal</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveEdit(index) {
+            const wordInput = document.getElementById(`editWordInput-${index}`);
+            const intervalInput = document.getElementById(`editIntervalInput-${index}`);
+            const errorDiv = document.getElementById('error');
+            const word = wordInput.value.trim();
+            const interval = parseInt(intervalInput.value) * 1000;
+
+            if (!word || !interval || interval < 5000) {
+                errorDiv.textContent = 'Lütfen bir kelime ve en az 5 saniyelik bir süre girin!';
+                return;
+            }
+
+            const oldWord = words[index].word;
+            if (word !== oldWord && isWordExists(word)) {
+                errorDiv.textContent = 'Bu kelime zaten listede!';
+                return;
+            }
+
+            const oldIntervalId = notificationIntervals.get(oldWord);
+            if (oldIntervalId) {
+                clearInterval(oldIntervalId);
+                notificationIntervals.delete(oldWord);
+            }
+
+            words[index] = { word, interval };
+            localStorage.setItem('words', JSON.stringify(words));
+            editingIndex = null;
+            updateWordList();
+            updateNotifications();
+            errorDiv.textContent = '';
+        }
+
+        function cancelEdit() {
+            editingIndex = null;
+            updateWordList();
+        }
+
+        function deleteWord(index) {
+            const wordObj = words[index];
+            const intervalId = notificationIntervals.get(wordObj.word);
+            if (intervalId) {
+                clearInterval(intervalId);
+                notificationIntervals.delete(wordObj.word);
+            }
+            words.splice(index, 1);
+            localStorage.setItem('words', JSON.stringify(words));
+            updateWordList();
+            updateNotifications();
+        }
+
+        function clearAllWords() {
+            if (!confirm('Tüm kelimeleri silmek istediğinizden emin misiniz?')) {
+                return;
+            }
+            stopAllNotifications();
+            words = [];
+            localStorage.setItem('words', JSON.stringify(words));
+            updateWordList();
+            updateNotifications();
+        }
+
+        function updateWordList() {
+            const wordList = document.getElementById('wordList');
+            wordList.innerHTML = '';
+            words.forEach((wordObj, index) => {
+                const li = document.createElement('li');
+                li.id = `word-${index}`;
+                li.innerHTML = `${wordObj.word} (her ${wordObj.interval / 1000} saniyede) 
+                    <div>
+                        <button class="edit-btn" onclick="editWord(${index})">Düzenle</button>
+                        <button class="delete-btn" onclick="deleteWord(${index})">Sil</button>
+                    </div>`;
+                wordList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
