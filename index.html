@@ -60,7 +60,7 @@
     </div>
     <!-- SVG dalga dekorasyonu -->
     <svg class="absolute top-0 left-0 w-full h-24 opacity-30 pointer-events-none" viewBox="0 0 900 200" preserveAspectRatio="none">
-      <path fill="#a78bfa" d="M0,64L60,80C120,96,240,128,360,133.3C480,139,600,117,720,112C840,107,960,149,1080,160C1200,171,1320,149,1380,138.7L1440,128L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"></path>
+      <path fill="#a78bfa" d="M0,64L60,80C120,96,240,128,360,133.3C480,139,600,117,720,112C840,107,960,149,1080,160C1200,171,1320,149,1380,138.7L1440,128L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0[...] 
     </svg>
   </div>
   <nav class="flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-gray-900/80 shadow-md relative z-10 rounded-b-xl">
@@ -158,14 +158,24 @@
             <div class="text-sm text-gray-500 dark:text-gray-400" id="profileEmail">kullanici@mail.com</div>
           </div>
         </div>
-        <div class="mt-2">
-          <div>Öğrenilen Kelime: <span id="learnedCount">0</span></div>
-          <div>Uygulama Teması: <span id="profileTheme">Açık</span></div>
+        <div class="mt-3 flex flex-col gap-2">
+          <label for="profileAvatarInput" class="block mb-1 font-medium">Profil Fotoğrafı Değiştir:</label>
+          <input type="file" id="profileAvatarInput" class="input mb-1" accept="image/*">
+          <button class="btn btn-primary mt-1" onclick="updateProfileAvatar()">Kaydet</button>
         </div>
-        <div class="mt-3">
+        <div class="mt-3 flex flex-col gap-2">
           <label for="profileNameInput" class="block mb-1">Adını güncelle:</label>
           <input type="text" id="profileNameInput" class="input mb-1" placeholder="Adınız">
           <button class="btn btn-primary mt-1" onclick="updateProfileName()">Kaydet</button>
+        </div>
+        <div class="mt-3 flex flex-col gap-2">
+          <label for="profileEmailInput" class="block mb-1">E-posta güncelle:</label>
+          <input type="email" id="profileEmailInput" class="input mb-1" placeholder="E-posta adresiniz">
+          <button class="btn btn-primary mt-1" onclick="updateProfileEmail()">Kaydet</button>
+        </div>
+        <div class="mt-2">
+          <div>Öğrenilen Kelime: <span id="learnedCount">0</span></div>
+          <div>Uygulama Teması: <span id="profileTheme">Açık</span></div>
         </div>
       </div>
     </section>
@@ -261,19 +271,20 @@
     function showProfileSection() {
       const defaultName = localStorage.getItem('profileName') || "Kullanıcı Adı";
       const defaultEmail = localStorage.getItem('profileEmail') || "kullanici@mail.com";
-      // Örneğin öğrenilen kelimeler ayrı tutuluyorsa, yoksa kelime listesinin tamamı da sayılabilir
+      const defaultAvatar = localStorage.getItem('profileAvatar') || "https://randomuser.me/api/portraits/men/32.jpg";
       let learnedCount = 0;
       if(localStorage.getItem('learnedWords')) {
         learnedCount = JSON.parse(localStorage.getItem('learnedWords')).length;
       } else if(localStorage.getItem('words')) {
-        // Eğer learnedWords ayrı tutulmuyorsa, tüm kaydedilmiş kelime sayısı
         learnedCount = JSON.parse(localStorage.getItem('words')).length;
       }
       document.getElementById('profileName').textContent = defaultName;
       document.getElementById('profileEmail').textContent = defaultEmail;
+      document.getElementById('profileAvatar').src = defaultAvatar;
       document.getElementById('learnedCount').textContent = learnedCount;
       document.getElementById('profileTheme').textContent = document.documentElement.classList.contains('dark') ? "Koyu" : "Açık";
       document.getElementById('profileNameInput').value = defaultName;
+      document.getElementById('profileEmailInput').value = defaultEmail;
     }
 
     function updateProfileName() {
@@ -282,6 +293,32 @@
         localStorage.setItem('profileName', val);
         document.getElementById('profileName').textContent = val;
         showToast('Profil adı güncellendi!');
+      }
+    }
+
+    function updateProfileEmail() {
+      const val = document.getElementById('profileEmailInput').value.trim();
+      if(val.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+        localStorage.setItem('profileEmail', val);
+        document.getElementById('profileEmail').textContent = val;
+        showToast('E-posta güncellendi!');
+      } else {
+        showToast('Geçerli bir e-posta giriniz!');
+      }
+    }
+
+    function updateProfileAvatar() {
+      const input = document.getElementById('profileAvatarInput');
+      if(input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          localStorage.setItem('profileAvatar', e.target.result);
+          document.getElementById('profileAvatar').src = e.target.result;
+          showToast('Profil resmi güncellendi!');
+        };
+        reader.readAsDataURL(input.files[0]);
+      } else {
+        showToast('Bir resim seçiniz!');
       }
     }
 
