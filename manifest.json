@@ -1,11 +1,11 @@
 {
-  "name": "Kelimelerim",
-  "short_name": "Kelimelerim",
+  "name": "Kelime Bildirim",
+  "short_name": "K. Bildirim",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#f8f8f8",
-  "theme_color": "#232323",
-  "description": "Kelime öğrenme, bildirim, quiz, dışa aktarım, sesli okuma ve istatistik uygulaması",
+  "background_color": "#ffffff",
+  "theme_color": "#0d9488",
+  "description": "Kelime Bildirim uygulaması",
   "icons": [
     {
       "src": "icon-192.png",
