@@ -11,6 +11,7 @@ let audioQuizData = { idx: 0, arr: [] };
 // --- TOAST ---
 function showToast(msg, color="bg-green-500") {
   const toast = document.getElementById("toast");
+  if (!toast) return;
   toast.textContent = msg;
   toast.className = `fixed right-4 bottom-4 text-white px-4 py-3 rounded shadow-lg transition z-50 ${color} opacity-100`;
   toast.style.pointerEvents = "auto";
@@ -20,11 +21,13 @@ function showToast(msg, color="bg-green-500") {
 // --- ERROR HANDLING ---
 function showError(msg) {
   const errorDiv = document.getElementById('error');
+  if (!errorDiv) return;
   errorDiv.textContent = msg;
   errorDiv.classList.remove('hidden');
 }
 function hideError() {
   const errorDiv = document.getElementById('error');
+  if (!errorDiv) return;
   errorDiv.textContent = '';
   errorDiv.classList.add('hidden');
 }
@@ -37,9 +40,11 @@ function addWord() {
   const wordInput = document.getElementById('wordInput');
   const intervalInput = document.getElementById('intervalInput');
   const word = wordInput.value.trim();
-  const interval = parseInt(intervalInput.value) * 1000;
-  if (!word || isNaN(interval) || interval < 5000) {
-    showError('Lütfen bir kelime ve en az 5 saniyelik bir süre girin!');
+  let interval = parseInt(intervalInput.value);
+  if (isNaN(interval) || interval < 5) interval = 10; // Varsayılan 10 saniye olsun
+  interval = interval * 1000;
+  if (!word) {
+    showError('Lütfen bir kelime girin!');
     return;
   }
   if (isWordExists(word)) {
@@ -71,6 +76,7 @@ function badgeBounce() {
 // --- LIST RENDERING ---
 function renderWords(filter="") {
   const wordList = document.getElementById('wordList');
+  if (!wordList) return;
   let filtered = words;
   if(filter) {
     filtered = words.filter(w=> 
@@ -95,21 +101,23 @@ function renderWords(filter="") {
       </div>
     </li>
   `).join('');
-  document.getElementById('listBadge').textContent = words.length;
-  document.getElementById('flashcardBadge').textContent = words.length;
+  const badge = document.getElementById('listBadge');
+  if (badge) badge.textContent = words.length;
+  const flashcardBadge = document.getElementById('flashcardBadge');
+  if (flashcardBadge) flashcardBadge.textContent = words.length;
 }
 
 // --- FAVORİ & ÖĞRENİLDİ ---
 function toggleFavorite(idx) {
   words[idx].favorite = !words[idx].favorite;
   localStorage.setItem('words', JSON.stringify(words));
-  renderWords(document.getElementById('wordSearch').value);
+  renderWords(document.getElementById('wordSearch') ? document.getElementById('wordSearch').value : "");
   showToast(words[idx].favorite ? "Favorilere eklendi!" : "Favoriden çıkarıldı!", "bg-yellow-500");
 }
 function toggleLearned(idx) {
   words[idx].learned = !words[idx].learned;
   localStorage.setItem('words', JSON.stringify(words));
-  renderWords(document.getElementById('wordSearch').value);
+  renderWords(document.getElementById('wordSearch') ? document.getElementById('wordSearch').value : "");
   showToast(words[idx].learned ? "Öğrenildi olarak işaretlendi!" : "Öğrenildi kaldırıldı!", "bg-green-600");
 }
 
@@ -117,7 +125,7 @@ function toggleLearned(idx) {
 function removeWord(idx) {
   words.splice(idx,1);
   localStorage.setItem('words', JSON.stringify(words));
-  renderWords(document.getElementById('wordSearch').value);
+  renderWords(document.getElementById('wordSearch') ? document.getElementById('wordSearch').value : "");
   showToast('Kelime silindi!', "bg-red-500");
   badgeBounce();
   updateProgressBar();
@@ -246,8 +254,10 @@ function speakWord(word, meaning) {
 function updateProgressBar() {
   learnedToday = Math.min(learnedToday, dailyGoal);
   const percent = Math.min(100, Math.round(100*learnedToday/dailyGoal));
-  document.getElementById('progressBar').style.width = percent + "%";
-  document.getElementById('progressText').textContent = `${learnedToday}/${dailyGoal}`;
+  const bar = document.getElementById('progressBar');
+  const text = document.getElementById('progressText');
+  if (bar) bar.style.width = percent + "%";
+  if (text) text.textContent = `${learnedToday}/${dailyGoal}`;
 }
 function resetProgress() {
   learnedToday = 0;
@@ -259,17 +269,21 @@ function resetProgress() {
 function showNotification(word, meaning, interval) {
   return setInterval(() => {
     let body = meaning ? `${word}: ${meaning}` : word;
-    new Notification('Kelime Hatırlatıcı', {
-      body: body,
-      icon: 'https://via.placeholder.com/32'
-    });
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Kelime Hatırlatıcı', {
+        body: body,
+        icon: 'https://via.placeholder.com/32'
+      });
+    } else {
+      showToast(`Hatırlatma: ${body}`,"bg-yellow-500");
+    }
   }, interval);
 }
 function startNotifications(wordList) {
   stopAllNotifications();
   wordList.forEach(wordObj => {
     if (!('Notification' in window)) {
-      alert('Tarayıcınız bildirimleri desteklemiyor!');
+      showToast('Tarayıcınız bildirimleri desteklemiyor!',"bg-yellow-500");
       return;
     }
     if (Notification.permission !== 'granted') {
@@ -278,9 +292,7 @@ function startNotifications(wordList) {
           const intervalId = showNotification(wordObj.word, wordObj.meaning, wordObj.interval);
           notificationIntervals.set(wordObj.word, intervalId);
         } else {
-          alert('Bildirim izni verilmedi, alert kullanılacak.');
-          const intervalId = setInterval(() => alert(`Hatırlatma: ${wordObj.word}${wordObj.meaning ? ' - ' + wordObj.meaning : ''}`), wordObj.interval);
-          notificationIntervals.set(wordObj.word, intervalId);
+          showToast('Bildirim izni verilmedi!','bg-red-500');
         }
       });
     } else {
@@ -341,13 +353,15 @@ function startQuiz() {
   quizData.arr = [...words].sort(() => Math.random() - 0.5).slice(0, 10);
   quizData.idx = 0;
   quizData.mode = true;
-  quizStats.total++;
+  // quizStats.total++; // Quiz sonunda arttırılmalı
   localStorage.setItem('quizStats', JSON.stringify(quizStats));
   showQuizStats();
   showQuizQuestion();
 }
 function showQuizStats() {
-  document.getElementById('quizStats').innerHTML = `
+  const statsDiv = document.getElementById('quizStats');
+  if (!statsDiv) return;
+  statsDiv.innerHTML = `
     <div class="flex gap-4">
       <span class="inline-block bg-green-200 text-green-900 text-xs px-2 py-1 rounded font-semibold">Doğru: ${quizStats.correct}</span>
       <span class="inline-block bg-blue-200 text-blue-900 text-xs px-2 py-1 rounded font-semibold">Toplam Quiz: ${quizStats.total}</span>
@@ -356,6 +370,8 @@ function showQuizStats() {
 }
 function showQuizQuestion() {
   if(quizData.idx >= quizData.arr.length) {
+    quizStats.total++;
+    localStorage.setItem('quizStats', JSON.stringify(quizStats));
     closeQuizModal();
     showToast(`Quiz tamamlandı! Skor: ${quizStats.correct}/${quizData.arr.length}`,"bg-purple-600");
     showQuizStats();
@@ -417,17 +433,19 @@ let flashcardIndex = 0;
 let flashcardShowMeaning = false;
 function showFlashcardSection() {
   renderFlashcard();
-  document.getElementById('flashcardBadge').textContent = words.length;
+  const badge = document.getElementById('flashcardBadge');
+  if (badge) badge.textContent = words.length;
 }
 function renderFlashcard() {
   const box = document.getElementById('flashcardBox');
+  if (!box) return;
   if (!words.length) {
     box.innerHTML = `<div class="text-center text-gray-400">Hiç kelime yok!</div>`;
     return;
   }
   const w = words[flashcardIndex];
   box.innerHTML = `
-    <div class="relative w-72 h-40 cursor-pointer rounded-2xl shadow-lg bg-gradient-to-br from-blue-100 to-purple-200 dark:from-gray-700 dark:to-gray-800 flex flex-col items-center justify-center transition-all duration-300 hover:scale-105"
+    <div class="relative w-72 h-40 cursor-pointer rounded-2xl shadow-lg bg-gradient-to-br from-blue-100 to-purple-200 dark:from-gray-700 dark:to-gray-800 flex flex-col items-center justify-center transition"
          onclick="toggleFlashcard()">
       <div class="text-2xl font-bold mb-2">${flashcardShowMeaning ? (w.meaning || "<i>Anlam eklenmemiş</i>") : w.word}</div>
       <div class="text-sm text-gray-500 dark:text-gray-300">${w.note ? "Not: " + w.note : "&nbsp;"}</div>
@@ -475,7 +493,8 @@ function speakFlashcard() {
 
 // --- SAYFA AÇILIŞI ---
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('notificationWordCount').value = notificationWordCount || '';
+  const notificationWordCountInput = document.getElementById('notificationWordCount');
+  if (notificationWordCountInput) notificationWordCountInput.value = notificationWordCount || '';
   renderWords();
   showQuizStats();
   hideError();
