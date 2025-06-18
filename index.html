@@ -308,5 +308,20 @@
     #listBadge { transition: transform 0.2s;}
     #listBadge.bounce { transform: scale(1.2);}
   </style>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/service-worker.js')
+      .then(function(reg) {
+        console.log('Service worker registered.', reg);
+      })
+      .catch(function(err) {
+        console.error('Service worker registration failed:', err);
+        // İsterseniz kullanıcıya burada uyarı gösterebilirsiniz:
+        // alert('Uygulama çevrimdışı desteği yüklenemedi!');
+      });
+    });
+  }
+</script>
 </body>
 </html>
