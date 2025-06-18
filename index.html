@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -17,7 +16,10 @@
   <div class="relative overflow-hidden">
     <div class="w-full py-10 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 text-white rounded-b-3xl mb-4 shadow-xl flex flex-col items-center">
       <div class="flex items-center gap-4 mb-2">
-        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profil" class="w-14 h-14 rounded-full border-4 border-white shadow">
+        <button onclick="showSection('profil')" class="relative group">
+          <img id="profileImage" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profil" class="w-14 h-14 rounded-full border-4 border-white shadow transition hover:scale-105">
+          <span class="absolute -bottom-1 -right-1 bg-green-400 border-2 border-white rounded-full w-4 h-4 flex items-center justify-center text-xs">🖉</span>
+        </button>
         <div>
           <h1 class="text-3xl font-bold">Kelimelerim</h1>
           <p class="text-lg opacity-90">Her gün yeni kelimeler öğren!</p>
@@ -33,14 +35,16 @@
         </div>
       </div>
     </div>
-    <svg class="absolute top-0 left-0 w-full h-24 opacity-30 pointer-events-none" viewBox="0 0 900 200"><path fill="#a78bfa" d="M0,64L60,80C120,96,240,128,360,133.3C480,139,600,117,720,112C840,107,960,117,1080,133.3C1200,149,1320,171,1380,181.3L1440,192L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"></path></svg>
+    <svg class="absolute top-0 left-0 w-full h-24 opacity-30 pointer-events-none" viewBox="0 0 900 200"><path fill="#a78bfa" d="M0,64L60,80C120,96,240,128,360,133.3C480,139,600,117,720,112C840,107,960,133,1080,144C1200,155,1320,149,1380,144L1440,139L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"></path></svg>
   </div>
+
   <nav class="flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-gray-900/80 shadow-md relative z-10 rounded-b-xl">
     <div class="flex items-center gap-2 text-2xl font-bold text-blue-700 dark:text-purple-300"><span>📚</span>Kelimelerim</div>
     <div class="flex items-center gap-3">
       <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-blue-300/30 dark:hover:bg-purple-300/20 transition" title="Tema">
         <span id="themeIcon">🌙</span>
       </button>
+      <button onclick="showSection('profil')" class="p-2 rounded-full hover:bg-green-200/30 dark:hover:bg-green-300/10 transition" title="Profil"><span>👤</span></button>
       <button onclick="showSection('quiz')" class="p-2 rounded-full hover:bg-blue-300/30 dark:hover:bg-purple-300/20 transition" title="Quiz"><span>📝</span></button>
       <button onclick="showSection('audioQuiz')" class="p-2 rounded-full hover:bg-blue-300/30 dark:hover:bg-purple-300/20 transition" title="Sesli Quiz"><span>🔉</span></button>
       <button onclick="showSection('flashcard')" class="p-2 rounded-full hover:bg-green-100 dark:hover:bg-green-800 transition" title="Flashcard"><span>🃏</span></button>
@@ -49,9 +53,46 @@
       <button onclick="showSection('ayarlar')" class="p-2 rounded-full hover:bg-blue-300/30 dark:hover:bg-purple-300/20 transition" title="Ayarlar"><span>⚙️</span></button>
     </div>
   </nav>
+
   <main class="flex-1 w-full max-w-2xl mx-auto px-2 py-6">
     <div id="toast" class="fixed right-4 bottom-4 bg-green-500 text-white px-4 py-3 rounded shadow-lg opacity-0 pointer-events-none transition z-50"></div>
     <div id="error" class="hidden mb-4 px-4 py-3 rounded bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-200"></div>
+
+    <!-- Profil -->
+    <section id="profil" class="card mb-6 hidden animate-in">
+      <h2 class="text-xl font-semibold mb-3 flex items-center gap-2">Profil</h2>
+      <div class="flex flex-col sm:flex-row gap-6 items-center">
+        <div class="flex flex-col items-center gap-2">
+          <label for="profileImageInput" class="cursor-pointer">
+            <img id="profileImagePreview" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profil" class="w-20 h-20 rounded-full border-4 border-blue-400 shadow-lg object-cover">
+            <input id="profileImageInput" type="file" accept="image/*" class="hidden" onchange="updateProfileImage(event)">
+          </label>
+          <span class="text-xs text-gray-500">Fotoğrafı değiştir</span>
+        </div>
+        <div class="flex-1 flex flex-col gap-3 w-full">
+          <label>
+            <span class="block text-sm font-medium">Adınız</span>
+            <input id="profileName" class="input w-full" placeholder="Adınızı girin">
+          </label>
+          <label>
+            <span class="block text-sm font-medium">Kısa Biyografi</span>
+            <textarea id="profileBio" class="input w-full" rows="2" placeholder="Kısa bir biyografi..."></textarea>
+          </label>
+          <button class="btn btn-primary w-full mt-2" onclick="saveProfile()">Profili Kaydet</button>
+        </div>
+      </div>
+      <div class="mt-6 grid grid-cols-2 gap-4 text-center">
+        <div class="bg-blue-100 rounded-lg p-3 dark:bg-blue-900/30">
+          <div class="text-2xl font-bold" id="profileStatKelime">0</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">Toplam Kelime</div>
+        </div>
+        <div class="bg-purple-100 rounded-lg p-3 dark:bg-purple-900/30">
+          <div class="text-2xl font-bold" id="profileStatOgrenildi">0</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">Öğrenilen Kelime</div>
+        </div>
+      </div>
+    </section>
+
     <!-- Kelime Ekle -->
     <section id="kelimeEkle" class="card mb-6 animate-in">
       <h2 class="text-xl font-semibold mb-3">Kelime Ekle</h2>
@@ -147,6 +188,7 @@
     <button onclick="showSection('audioQuiz')" class="flex flex-col items-center text-blue-600"><span>🔉</span><span class="text-xs">Sesli</span></button>
     <button onclick="showSection('flashcard')" class="flex flex-col items-center text-yellow-500"><span>🃏</span><span class="text-xs">Kart</span></button>
     <button onclick="showSection('ayarlar')" class="flex flex-col items-center text-gray-500"><span>⚙️</span><span class="text-xs">Ayar</span></button>
+    <button onclick="showSection('profil')" class="flex flex-col items-center text-green-500"><span>👤</span><span class="text-xs">Profil</span></button>
   </nav>
   <footer class="py-3 text-center text-gray-400 text-sm dark:text-gray-500 mt-10">© 2025 Kelimelerim</footer>
   <script src="script.js"></script>
@@ -164,22 +206,72 @@
       }
     }
     function showSection(id) {
-      for(const sec of ['kelimeEkle','kelimeListesi','ayarlar','quiz','audioQuiz','flashcard']) {
+      for(const sec of ['profil','kelimeEkle','kelimeListesi','ayarlar','quiz','audioQuiz','flashcard']) {
         const el = document.getElementById(sec);
         if(el) {
           if(sec===id) {
             el.classList.remove('hidden');
             setTimeout(()=>el.classList.add('fade-in'),10);
+            if(sec==='profil') renderProfile();
           } else {
             el.classList.add('hidden');
             el.classList.remove('fade-in');
           }
         }
       }
-      // Özel: Flashcard veya AudioQuiz ise ilgili render fonksiyonunu çağır
       if(id==="flashcard" && typeof showFlashcardSection==="function") showFlashcardSection();
       if(id==="audioQuiz" && typeof showAudioQuizSection==="function") showAudioQuizSection();
     }
+
+    // Profil fonksiyonu
+    function saveProfile() {
+      const name = document.getElementById('profileName').value.trim();
+      const bio = document.getElementById('profileBio').value.trim();
+      const img = localStorage.profileImage || "https://randomuser.me/api/portraits/men/32.jpg";
+      localStorage.profileName = name;
+      localStorage.profileBio = bio;
+      if (localStorage.profileImage) {
+        document.getElementById('profileImage').src = localStorage.profileImage;
+        document.getElementById('profileImagePreview').src = localStorage.profileImage;
+      }
+      document.getElementById('toast').textContent = "Profil kaydedildi!";
+      document.getElementById('toast').style.opacity = 1;
+      setTimeout(() => document.getElementById('toast').style.opacity = 0, 2000);
+      renderProfile();
+    }
+    function renderProfile() {
+      document.getElementById('profileName').value = localStorage.profileName || "";
+      document.getElementById('profileBio').value = localStorage.profileBio || "";
+      document.getElementById('profileImage').src = localStorage.profileImage || "https://randomuser.me/api/portraits/men/32.jpg";
+      document.getElementById('profileImagePreview').src = localStorage.profileImage || "https://randomuser.me/api/portraits/men/32.jpg";
+      // İstatistikler
+      let kelimeList = [];
+      try {
+        kelimeList = JSON.parse(localStorage.kelimeler || '[]');
+      } catch(e){}
+      document.getElementById('profileStatKelime').textContent = kelimeList.length;
+      const ogrenildi = kelimeList.filter(w=>w.ogrenildi).length;
+      document.getElementById('profileStatOgrenildi').textContent = ogrenildi;
+    }
+    function updateProfileImage(e) {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        localStorage.profileImage = ev.target.result;
+        document.getElementById('profileImage').src = ev.target.result;
+        document.getElementById('profileImagePreview').src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    // Ana profil resmi tıklanınca profil sayfasına git
+    document.addEventListener('DOMContentLoaded', function(){
+      document.getElementById('profileImage').onclick = function(){
+        showSection('profil');
+      };
+      renderProfile();
+    });
+
     function openQuizModal(q) {
       document.getElementById('quizQuestion').textContent = q;
       document.getElementById('quizModal').classList.remove('hidden');
