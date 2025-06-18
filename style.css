@@ -3,7 +3,7 @@ body {
     margin: 0;
     background-color: #fbfbfb;
     color: #222;
-    transition: background 0.3s, color 0.3s;
+    transition: background-color 0.3s, color 0.3s;
 }
 .dark-mode {
     background-color: #23272f;
@@ -89,11 +89,18 @@ body {
     flex-wrap: wrap;
     gap: 0.5em;
 }
-.input-group input, .input-group select, .input-group button {
+/* Sadece aralardaki elemanlara margin */
+.input-group input:not(:last-child),
+.input-group select:not(:last-child),
+.input-group button:not(:last-child) {
+    margin-right: 0.5em;
+}
+.input-group input,
+.input-group select,
+.input-group button {
     padding: 0.6em;
     border-radius: 6px;
     border: 1px solid #bbb;
-    margin-right: 0.5em;
     font-size: 1em;
 }
 .input-group button {
@@ -120,6 +127,12 @@ body {
     margin-bottom: 1em;
     float: right;
 }
+/* float sonrası için clearfix */
+.container::after {
+    content: "";
+    display: table;
+    clear: both;
+}
 ul#wordList {
     list-style: none;
     padding: 0;
@@ -135,4 +148,19 @@ ul#wordList li {
 }
 .dark-mode ul#wordList li {
     background: #353a44;
+}
+
+/* Responsive tasarım */
+@media (max-width: 650px) {
+    .container {
+        max-width: 98vw;
+        padding: 1em 0.5em;
+    }
+    .sidebar {
+        width: 80vw;
+        left: -82vw;
+    }
+    .sidebar.open {
+        left: 0;
+    }
 }
