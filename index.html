@@ -35,7 +35,7 @@
         </div>
       </div>
     </div>
-    <svg class="absolute top-0 left-0 w-full h-24 opacity-30 pointer-events-none" viewBox="0 0 900 200"><path fill="#a78bfa" d="M0,64L60,80C120,96,240,128,360,133.3C480,139,600,117,720,112C840,107,960,133,1080,144C1200,155,1320,149,1380,144L1440,139L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"></path></svg>
+    <svg class="absolute top-0 left-0 w-full h-24 opacity-30 pointer-events-none" viewBox="0 0 900 200"><path fill="#a78bfa" d="M0,64L60,80C120,96,240,128,360,133.3C480,139,600,117,720,112C840,107,960,117,1080,112C1200,107,1320,85,1380,74.7L1440,64L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"></path></svg>
   </div>
 
   <nav class="flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-gray-900/80 shadow-md relative z-10 rounded-b-xl">
@@ -125,6 +125,16 @@
       <label class="block mb-3">
         <span>Bildirilecek kelime sayısı:</span>
         <input id="notificationWordCount" type="number" min="1" class="input mt-1 w-32">
+      </label>
+      <label class="block mb-3">
+        <span>Bildirilecek saatler:</span>
+        <input id="notificationTimes" type="text" class="input mt-1 w-52" placeholder="örn: 09:00,14:00,21:00">
+        <small class="text-xs text-gray-500">Birden fazla saat için virgül ile ayırın</small>
+      </label>
+      <label class="block mb-3">
+        <span>Periyodik bildirim aralığı (dakika):</span>
+        <input id="notificationInterval" type="number" min="1" class="input mt-1 w-32" value="60">
+        <small class="text-xs text-gray-500">0 yaparsanız aralık bildirimleri kapalı olur.</small>
       </label>
       <div class="flex flex-wrap gap-2">
         <button class="btn btn-primary" onclick="updateNotifications()">Bildirimleri Başlat</button>
